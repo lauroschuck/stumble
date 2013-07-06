@@ -1,0 +1,45 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport">
+		<link href="css/util.css" rel="stylesheet" type="text/css">
+		<link href="css/fonts.css" rel="stylesheet" type="text/css">
+		<link href="style/confirm.css" rel="stylesheet" type="text/css">
+		<script>
+			
+			function gup(name) {
+				name = RegExp ('[?&]' + name.replace (/([[\]])/, '\\$1') + '=([^&#]*)');
+				return (window.location.href.match (name) || ['', ''])[1];
+			}
+			
+			function remover() {
+				var keywords = JSON.parse(localStorage["keywords"]);
+				keywords.splice(gup("i"), 1);
+				localStorage["keywords"] = JSON.stringify(keywords);
+				var palavra = gup("palavra")
+				console.log("Removido palavra '"+palavra+"' dos interesses (indice "+gup("i")+")");
+				window.location = "keywords.html?removido="+palavra;
+				return false;
+			}
+		</script>
+	</head>
+	<body>
+
+		<form role="dialog" data-type="confirm">
+		  <section>
+			<h1>Confirmação</h1>
+			<p>
+			  <strong></strong>
+			</p>
+			<p>Você quer remover esse interesse?</p>
+		  </section>
+		  <menu>
+			<button onclick="javascript:window.location = 'keywords.html'; return false;">Cancelar</button>
+			<button class="recommend" onclick="javascript:return remover()">Sim</button>
+		  </menu>
+		</form>
+		<script>
+			document.querySelector("form strong").innerHTML = gup("palavra");
+		</script>
+	</body>
+</html>

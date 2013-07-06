@@ -1,0 +1,78 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport">
+		<link href="css/util.css" rel="stylesheet" type="text/css">
+		<link href="css/fonts.css" rel="stylesheet" type="text/css">
+		<link href="style/headers.css" rel="stylesheet" type="text/css">
+		<link href="icons/styles/action_icons.css" rel="stylesheet" type="text/css">
+		<link href="style/input_areas.css" rel="stylesheet" type="text/css">
+		<link href="style_unstable/lists.css" rel="stylesheet" type="text/css">
+		<link href="style/status.css" rel="stylesheet" type="text/css">
+		<script type="text/javascript" src="js/status.js"></script>
+		<script>
+			function gup(name) {
+				name = RegExp ('[?&]' + name.replace (/([[\]])/, '\\$1') + '=([^&#]*)');
+				return (window.location.href.match (name) || ['', ''])[1];
+			}
+			
+			function removePalavra(i) {
+				window.location = "remove.html?i="+i+"&palavra="+JSON.parse(localStorage["keywords"])[i].palavra;
+			}
+
+			function exibePalavra(i, obj) {
+				var li = "<li><a href=\"javascript:removePalavra('"+i+"')\">" +
+						"<p>"+obj.palavra+"</p>" +
+						"<p>Raio de "+obj.raio+" metros a cada "+obj.freq+" minutos</p>" +
+						"</a>" +
+					"</li>";
+				document.querySelector("#keywordList").innerHTML += li;
+			}
+			
+			function refresh() {
+				var keywords = JSON.parse(localStorage["keywords"]);
+				document.querySelector("#keywordList").innerHTML = "";
+				for (var i in keywords) {
+					var word = keywords[i];
+					exibePalavra(i, word);
+				}
+				document.querySelector("#keywordCount").innerHTML = "("+keywords.length+")";
+				
+				var removido = gup("removido");
+				if (removido) {
+					//utils.status.show("O interesse '"+removido+"' foi removido");
+				}
+			}
+			
+			function init() {
+				refresh();
+			}
+			
+		</script>
+	</head>
+	<body>
+		
+		<section role="region">
+		  <header>
+			<button onclick="window.location='index.html'"><span class="icon icon-back">back</span></button>
+			<menu type="toolbar">
+				<a href="add.html"><span class="icon icon-add">add</span></a>
+			</menu>
+			<h1>Interesses</h1>
+		  </header>
+
+			<section data-type="list">
+			  <header>Interesses registrados <em id="keywordCount"></em></header>
+				<article class="content scrollable">
+				  <ul id="keywordList">
+				  </ul>
+				</article>
+			</section>
+
+		</section>		
+
+		<script>
+			init();
+		</script>
+	</body>
+</html>

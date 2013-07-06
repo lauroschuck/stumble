@@ -1,0 +1,22 @@
+{
+	"name": "Stumble",
+	"launch_path": "/index.html",
+	"description": "Ache o que você não lembrava mais que queria encontrar!",
+	"developer": {
+		"name": "Lauro Feiten Schuck",
+		"url": "http://example.com"
+	},
+	"type": "privileged",
+	"permissions": {
+		"systemXHR": {
+			"description": "Pra chamar a Places API do Google"
+		},
+		"geolocation": {
+			"description": "Pra saber onde você está"
+		}
+	},
+	"icons": {
+		"60": "/icons/stumble.png"
+	},
+	"version": "0.0.1-pre-pre-pre-alpha"
+}

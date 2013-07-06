@@ -1,0 +1,237 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport">
+		<link href="css/util.css" rel="stylesheet" type="text/css">
+		<link href="css/fonts.css" rel="stylesheet" type="text/css">
+		<link href="style/headers.css" rel="stylesheet" type="text/css">
+		<link href="icons/styles/action_icons.css" rel="stylesheet" type="text/css">
+		<link href="style_unstable/lists.css" rel="stylesheet" type="text/css">
+		<link href="style/confirm.css" rel="stylesheet" type="text/css">
+		<style>
+			#detalhes small {
+				padding: 0;
+				margin: 0;
+			}
+			[data-type="list"] li img[alt="placeholder"] {
+				background: #ccc url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNS4wLjIsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkNhcGFfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4IiB5PSIwcHgiDQoJIHdpZHRoPSI1MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgNTAgNTAiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPGxpbmUgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHgxPSIwIiB5MT0iMCIgeDI9IjUwIiB5Mj0iNTAiLz4NCjxsaW5lIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMDAwMCIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiB4MT0iNTAiIHkxPSIwIiB4Mj0iMC4wODIiIHkyPSI0OS45MTkiLz4NCjwvc3ZnPg0K);
+				background-size: 100% 100%;
+				font-size: 0;
+			}
+		</style>
+		<script>
+			function mostrarDetalhes(id, iconUrl) {
+				var oReq = new XMLHttpRequest({
+					mozSystem: true
+				});
+				oReq.onreadystatechange = readystate(oReq, function(jsonResponse) {
+					if (jsonResponse.result) {
+						var result = jsonResponse.result;
+						document.querySelector('#detalhes .nome').innerHTML = result.name;
+						var extra = result.vicinity;
+						if (result.formatted_phone_number) {
+							extra += "<br/>"+result.formatted_phone_number;
+						}
+						if (result.website) {
+							extra += "<br/>"+result.website;
+						}
+						if (result.rating) {
+							var aval = result.reviews ? result.reviews.length : 0;
+							extra += "<br/>Classificação Google: "+result.rating+" ("+result.reviews.length+" avaliações)";
+						}
+						document.querySelector('#detalhes .extra').innerHTML = extra;
+						document.querySelector('#detalhes img').src = iconUrl;
+						
+						document.querySelector('#lista').style.display = 'none';
+						document.querySelector('#detalhes').style.display = '';
+					} else {
+						alert("Não foi possível obter detalhes do local");
+					}
+				});
+
+				var theUrl = "https://maps.googleapis.com/maps/api/place/details/json?reference="+id+"&sensor=true&key="+apiKey;
+				oReq.open("get", theUrl, true);
+				oReq.send();
+				
+			}
+			
+			function fecharDetalhes() {
+				document.querySelector('#detalhes').style.display = 'none';
+				document.querySelector('#lista').style.display = '';
+			}
+			
+			function procurar(what) {
+				console.log("Consultando geolocalização do dispositivo");
+				navigator.geolocation.getCurrentPosition(function(position) {
+					procurarPlaces(position.coords, what);
+				});
+			}
+			
+			function diffCoord(c1,c2) {
+				return Math.abs(Math.abs(c1) - Math.abs(c2));
+			}
+			
+			function hipot(a,b) {
+				return Math.sqrt(a*a,b*b);
+			}
+			
+			function distCoordMt(lat1, lng1, lat2, lng2) {
+				return hipot(
+					diffCoord(lat1, lat2),
+					diffCoord(lng1, lng2)
+				) * 111325; //aprox grosseira de metros por grau,
+				//que nao considera latitude atual do sujeito (isso faz um pouco de diferença),
+				//nem curvatura da terra (isso nao importa nesse caso)
+			}
+			
+			function exibeResultados(what, overLimit, json, coords) {
+				var out = "";
+				if (overLimit) {
+					out += "<li aria-disabled=\"true\"><p>Limite de consultas atingido</p></li>";
+				} else if (json) {
+					for (var i in json.results) {
+						var curr = json.results[i];
+						var loc = curr.geometry.location;
+						var dist = distCoordMt(coords.latitude, coords.longitude, loc.lat, loc.lng).toFixed(0);
+						var icon;
+						var iconUrl;
+						if (curr.photos && curr.photos[0].photo_reference) {
+							var iconUrl = "https://maps.googleapis.com/maps/api/place/photo?sensor=true&key="+apiKey+
+								"&photoreference="+curr.photos[0].photo_reference+"&maxheight=60&maxwidth=60";
+							// usar placeholder pois pode ser que nucna carreguem algumas das imagens
+							icon = '<aside class="pack-end"><img alt="placeholder" src="'+iconUrl+'"></aside>';
+						} else if (curr.icon) {
+							iconUrl = curr.icon;
+							icon = '<aside class="pack-end"><img alt="icon" src="'+curr.icon+'"></aside>';
+						} else {
+							icon = '';
+						}
+
+						out += "<li><a href=\"javascript:mostrarDetalhes('"+curr.reference+"','"+iconUrl+"')\">"+icon+
+							"<p>"+curr.name+" <em>(~"+dist+"m)</em></p>"+
+							"<p>"+curr.vicinity+"</p></a></li>";
+					}
+					
+				} else {
+					out += "<li aria-disabled=\"true\"><p>Não encontrado</p></li>";
+				}
+				document.querySelector("#"+what.id).innerHTML = out;
+			}
+			
+			function partial(func /*, 0..n args */) {
+			  var args = Array.prototype.slice.call(arguments, 1);
+			  return function() {
+				var allArguments = args.concat(Array.prototype.slice.call(arguments));
+				return func.apply(this, allArguments);
+			  };
+			}
+			
+			function readystate(oReq, success) {
+				return partial(function(oReq, success) {
+				  if (oReq.readyState==4) {
+					if (oReq.status==200) {
+						var jsonResponse = JSON.parse(oReq.responseText);
+						success(jsonResponse);
+					} else {
+						alert("Erro inesperado");
+					}
+				  }
+				}, oReq, success);
+			}
+			
+			function procurarPlaces(coords, what) {
+				var lat = coords.latitude.toString();
+				var lng = coords.longitude.toString();
+				console.log("Buscando '"+what.palavra+"' em "+lat+","+lng+" precisao "+coords.accuracy);
+				var oReq = new XMLHttpRequest({
+					mozSystem: true
+				});
+				oReq.onreadystatechange = readystate(oReq, function(jsonResponse) {
+					console.log('jsonResponse '+jsonResponse.status+" "+jsonResponse);
+					var overLimit = (jsonResponse.status == "OVER_QUERY_LIMIT");
+					if (jsonResponse.results && jsonResponse.results.length > 0) {
+						exibeResultados(what, overLimit, jsonResponse, coords);
+					} else {
+						exibeResultados(what, overLimit);
+					}
+					agendarBusca(what);
+				});
+
+				var theUrl = "https://maps.googleapis.com/maps/api/place/search/json?key="+apiKey+"&sensor=true&radius="+what.raio+"&keyword="+what.palavra+"&location="+lat+","+lng+"&language=pt-BR";
+				oReq.open("get", theUrl, true);
+				oReq.send();
+			}
+
+			function agendarBusca(obj, delay) {
+				delay = delay ? delay : (obj.freq * 60 * 1000);
+				console.log("Agendando busca de '"+obj.palavra+"' em " + delay + "ms");
+				window.setTimeout(function() {
+					procurar(obj);
+				}, delay);
+			}
+
+			function init() {
+				keywords = localStorage["keywords"];
+				apiKey = localStorage["apiKey"];
+				if (!keywords) {
+					console.log("No interests registered, creating empty set")
+					localStorage["keywords"] = "[]";
+				} else if (!apiKey) {
+					alert("Google API Key não definida ainda!");
+				} else {
+					keywords = JSON.parse(keywords);
+					
+					// preparar espaco
+					var out = "";
+					for (var i in keywords) {
+						var keyword = keywords[i];
+						// criar "ids" no proprio objeto
+						keyword.id = keyword.palavra+i;
+						out += "<header>"+keyword.palavra+"</header><ul id=\""+keyword.id+"\"></ul>";
+					}
+					document.querySelector("#sectionStumbled").innerHTML = out;
+					
+					//buscar
+					for (var i in keywords) {
+						agendarBusca(keywords[i], 1000*(i+1));
+					}
+				}
+			}
+			
+		</script>
+	</head>
+	<body>
+		<section role="region" id="lista">
+			<header>
+				<menu type="toolbar">
+					<a href="keywords.html"><span class="icon icon-menu">menu</span></a>
+					<a href="config.html"><span class="icon icon-edit">edit</span></a>
+				</menu>
+				<h1>Stumble</h1>
+			</header>
+			<article class="content scrollable">
+				<section data-type="list" id="sectionStumbled">
+				</section>
+			</article>
+		</section>
+
+	<form role="dialog" data-type="confirm" id="detalhes" style="display:none">
+	  <section>
+		<h1>Detalhes</h1>
+		<p>
+		  <img src="#" alt="Lightbox Icon" width="60" height="60">
+		  <strong class="nome"></strong>
+		</p>
+		 <p><small class="extra"></small></p>
+	  </section>
+	  <menu>
+		<button class="recommend" onclick="javascript: fecharDetalhes(); return false;">Fechar</button>
+	  </menu>
+	</form>
+
+	<script>
+		// sim, muito tosco
+		init();
+	</script>
+	</body>
+</html>

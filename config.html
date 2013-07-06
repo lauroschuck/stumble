@@ -1,0 +1,53 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport">
+		<link href="css/util.css" rel="stylesheet" type="text/css">
+		<link href="css/fonts.css" rel="stylesheet" type="text/css">
+		<link href="style/headers.css" rel="stylesheet" type="text/css">
+		<link href="icons/styles/action_icons.css" rel="stylesheet" type="text/css">
+		<link href="style/input_areas.css" rel="stylesheet" type="text/css">
+		<style>
+			h2 {
+				margin-top: 1em;
+			}
+			input {
+				margin: 0.5em 1em;
+			}
+		</style>
+		<script>
+			function mudarKey() {
+				localStorage["apiKey"] = document.querySelector("#apiKey").value;
+			}
+			
+			function init() {
+				var key = localStorage["apiKey"];
+				console.log("Stored API key: " + key);
+				if (key) {
+					document.querySelector("#apiKey").value = key;
+				}
+			}
+			
+		</script>
+	</head>
+	<body>
+		
+		<section role="region">
+		  <header>
+			<button onclick="window.location='index.html'"><span class="icon icon-back">back</span></button>
+			<menu type="toolbar">
+			</menu>
+			<h1>Configurações</h1>
+		  </header>
+
+			<article class="content scrollable">
+				<h2>Google API Key</h2>
+				 <input id="apiKey" type="text" onchange="mudarKey()" placeholder="Google API Key" required="">
+			</article>
+		</section>
+
+		<script>
+			init();
+		</script>
+	</body>
+</html>

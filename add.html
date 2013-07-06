@@ -1,0 +1,97 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport">
+		<link href="css/util.css" rel="stylesheet" type="text/css">
+		<link href="css/fonts.css" rel="stylesheet" type="text/css">
+		<link href="style/headers.css" rel="stylesheet" type="text/css">
+		<link href="style/input_areas.css" rel="stylesheet" type="text/css">
+		<link href="style/buttons.css" rel="stylesheet" type="text/css">
+		<style>
+			h2 {
+				margin-top: 1em;
+			}
+			input {
+				margin: 0.5em 1em;
+			}
+		</style>
+		<script>
+			function filterInt(value) {
+				if(/^\-?([0-9]+|Infinity)$/.test(value)) {
+					return Number(value);
+				}
+				return NaN;
+			}
+			
+			function getNum(seletor, msgErro) {
+				var num = document.querySelector(seletor).value;
+				if (num) {
+					num = num.trim();
+				}
+				num = filterInt(num, '10');
+				if (!num || num <= 0) {
+					alert(msgErro);
+					return;
+				}
+				return num;
+			}
+			
+			function adicionarPalavra() {
+				var palavra = document.querySelector("#palavra").value;
+				if (palavra) {
+					palavra = palavra.trim();
+				}
+				if (!palavra) {
+					alert("Informe o seu interesse");
+					return;
+				}
+				var raio = getNum("#raio", "Informe um raio válido");
+				if (!raio) {
+					return;
+				}
+				var freq = getNum("#freq", "Informe uma frequência de busca válida");
+				if (!freq) {
+					return;
+				}
+				
+				//procurar já existente
+				var keywords = JSON.parse(localStorage["keywords"]);
+				for (var i in keywords) {
+					if (keywords[i].palavra == palavra) {
+						alert("Esse interesse já foi registrado!");
+						return;
+					}
+				}
+				
+				keywords[keywords.length] = {
+					"palavra": palavra,
+					"raio": raio,
+					"freq": freq
+				};
+				localStorage["keywords"] = JSON.stringify(keywords);
+				console.log("Adicionado aos interesses: '"+palavra+"' com raio "+raio+" metros e frequencia "+freq+" minutos");
+				window.location = "keywords.html";
+			}
+		</script>
+	</head>
+	<body>
+		
+	<section role="region">
+	  <header>
+		<button onclick="window.location='keywords.html'"><span class="icon icon-back">back</span></button>
+		<h1>Adicionar Interesse</h1>
+	  </header>
+
+		<article class="content scrollable">
+			<h2>Interesse</h2>
+			 <input id="palavra" type="text" placeholder="Ex.: restaurante, cinema, etc" required="">
+			<h2>Raio de busca (em metros)</h2>
+			 <input id="raio" type="text" placeholder="" required="Ex.: 200">
+			<h2>Frequencia de busca (em minutos)</h2>
+			 <input id="freq" type="text" placeholder="" required="Ex.: 3">
+			<a class="recommend" role="button" href="javascript:adicionarPalavra()">Adicionar</a>
+		</article>
+	</section>
+
+	</body>
+</html>
