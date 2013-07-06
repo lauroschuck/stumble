@@ -147,7 +147,6 @@
 					mozSystem: true
 				});
 				oReq.onreadystatechange = readystate(oReq, function(jsonResponse) {
-					console.log('jsonResponse '+jsonResponse.status+" "+jsonResponse);
 					var overLimit = (jsonResponse.status == "OVER_QUERY_LIMIT");
 					if (jsonResponse.results && jsonResponse.results.length > 0) {
 						exibeResultados(what, overLimit, jsonResponse, coords);
@@ -174,7 +173,7 @@
 				keywords = localStorage["keywords"];
 				apiKey = localStorage["apiKey"];
 				if (!keywords) {
-					console.log("No interests registered, creating empty set")
+					console.log("Sem objeto de registros, criado")
 					localStorage["keywords"] = "[]";
 				} else if (!apiKey) {
 					alert("Google API Key não definida ainda!");
@@ -192,8 +191,8 @@
 					document.querySelector("#sectionStumbled").innerHTML = out;
 					
 					//buscar
-					for (var i in keywords) {
-						agendarBusca(keywords[i], 1000*(i+1));
+					for (var i = 0; i < keywords.length; i++) {
+						agendarBusca(keywords[i], 1000*(3*i+1));
 					}
 				}
 			}
